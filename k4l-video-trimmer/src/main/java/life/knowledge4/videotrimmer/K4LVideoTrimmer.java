@@ -53,9 +53,9 @@ import java.util.List;
 import life.knowledge4.videotrimmer.interfaces.OnK4LVideoListener;
 import life.knowledge4.videotrimmer.interfaces.OnProgressVideoListener;
 import life.knowledge4.videotrimmer.interfaces.OnRangeSeekBarListener;
+import life.knowledge4.videotrimmer.interfaces.OnTrimPickedListener;
 import life.knowledge4.videotrimmer.interfaces.OnTrimVideoListener;
 import life.knowledge4.videotrimmer.utils.BackgroundExecutor;
-import life.knowledge4.videotrimmer.utils.TrimVideoUtils;
 import life.knowledge4.videotrimmer.utils.UiThreadExecutor;
 import life.knowledge4.videotrimmer.view.ProgressBarView;
 import life.knowledge4.videotrimmer.view.RangeSeekBarView;
@@ -64,7 +64,7 @@ import life.knowledge4.videotrimmer.view.TimeLineView;
 
 import static life.knowledge4.videotrimmer.utils.TrimVideoUtils.stringForTime;
 
-public class K4LVideoTrimmer extends FrameLayout {
+public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener {
 
     private static final String TAG = K4LVideoTrimmer.class.getSimpleName();
     private static final int MIN_TIME_FRAME = 1000;
@@ -86,10 +86,12 @@ public class K4LVideoTrimmer extends FrameLayout {
     private String mFinalPath;
 
     private int mMaxDuration;
+    private int mMinDuration;
     private List<OnProgressVideoListener> mListeners;
 
     private OnTrimVideoListener mOnTrimVideoListener;
     private OnK4LVideoListener mOnK4LVideoListener;
+    private OnTrimPickedListener mOnTrimPickedListener;
 
     private int mDuration = 0;
     private int mTimeVideo = 0;
@@ -99,6 +101,9 @@ public class K4LVideoTrimmer extends FrameLayout {
     private long mOriginSizeFile;
     private boolean mResetSeekBar = true;
     private final MessageHandler mMessageHandler = new MessageHandler(this);
+
+    private int presetStartPosition;
+    private int presetEndPosition;
 
     public K4LVideoTrimmer(@NonNull Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -128,6 +133,27 @@ public class K4LVideoTrimmer extends FrameLayout {
         setUpMargins();
     }
 
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                v.setBackgroundColor(0x33FFFFFF);
+                v.invalidate();
+                break;
+
+            case MotionEvent.ACTION_UP:
+                v.setBackgroundColor(0x00000000);
+                v.performClick();
+                break;
+
+            case MotionEvent.ACTION_CANCEL:
+                v.setBackgroundColor(0x00000000);
+                v.invalidate();
+                break;
+        }
+        return true;
+    }
+
     private void setUpListeners() {
         mListeners = new ArrayList<>();
         mListeners.add(new OnProgressVideoListener() {
@@ -138,25 +164,28 @@ public class K4LVideoTrimmer extends FrameLayout {
         });
         mListeners.add(mVideoProgressIndicator);
 
-        findViewById(R.id.btCancel)
-                .setOnClickListener(
-                        new OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                onCancelClicked();
-                            }
-                        }
-                );
+        TextView btnCancel =  (TextView) findViewById(R.id.btn_cancel);
+        btnCancel.setOnClickListener(
+                new OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        onCancelClicked();
+                    }
+                }
+        );
+        btnCancel.setOnTouchListener(this);
 
-        findViewById(R.id.btSave)
-                .setOnClickListener(
-                        new OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                onSaveClicked();
-                            }
-                        }
-                );
+
+        TextView btnChoose = (TextView) findViewById(R.id.btn_choose);
+        btnChoose.setOnClickListener(
+                new OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        onSaveClicked();
+                    }
+                }
+        );
+        btnChoose.setOnTouchListener(this);
 
         final GestureDetector gestureDetector = new
                 GestureDetector(getContext(),
@@ -260,8 +289,11 @@ public class K4LVideoTrimmer extends FrameLayout {
 
     private void onSaveClicked() {
         if (mStartPosition <= 0 && mEndPosition >= mDuration) {
-            if (mOnTrimVideoListener != null)
-                mOnTrimVideoListener.getResult(mSrc);
+            //if (mOnTrimVideoListener != null)
+            //    mOnTrimVideoListener.getResult(mSrc);
+            if (mOnTrimPickedListener != null) {
+                mOnTrimPickedListener.getResult(0, 0);
+            }
         } else {
             mPlayView.setVisibility(View.VISIBLE);
             mVideoView.pause();
@@ -270,7 +302,7 @@ public class K4LVideoTrimmer extends FrameLayout {
             mediaMetadataRetriever.setDataSource(getContext(), mSrc);
             long METADATA_KEY_DURATION = Long.parseLong(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
 
-            final File file = new File(mSrc.getPath());
+            //final File file = new File(mSrc.getPath());
 
             if (mTimeVideo < MIN_TIME_FRAME) {
 
@@ -281,6 +313,11 @@ public class K4LVideoTrimmer extends FrameLayout {
                 }
             }
 
+            if (mOnTrimPickedListener != null) {
+                mOnTrimPickedListener.getResult(mStartPosition, mEndPosition);
+            }
+
+            /*
             //notify that video trimming started
             if (mOnTrimVideoListener != null)
                 mOnTrimVideoListener.onTrimStarted();
@@ -297,6 +334,7 @@ public class K4LVideoTrimmer extends FrameLayout {
                         }
                     }
             );
+            */
         }
     }
 
@@ -305,6 +343,10 @@ public class K4LVideoTrimmer extends FrameLayout {
             mPlayView.setVisibility(View.VISIBLE);
             mMessageHandler.removeMessages(SHOW_PROGRESS);
             mVideoView.pause();
+
+            if (mOnTrimPickedListener != null) {
+                mOnTrimPickedListener.videoClicked(false);
+            }
         } else {
             mPlayView.setVisibility(View.GONE);
 
@@ -315,13 +357,20 @@ public class K4LVideoTrimmer extends FrameLayout {
 
             mMessageHandler.sendEmptyMessage(SHOW_PROGRESS);
             mVideoView.start();
+
+            if (mOnTrimPickedListener != null) {
+                mOnTrimPickedListener.videoClicked(true);
+            }
         }
     }
 
     private void onCancelClicked() {
         mVideoView.stopPlayback();
-        if (mOnTrimVideoListener != null) {
-            mOnTrimVideoListener.cancelAction();
+        //if (mOnTrimVideoListener != null) {
+        //    mOnTrimVideoListener.cancelAction();
+        //}
+        if (mOnTrimPickedListener != null) {
+            mOnTrimPickedListener.cancelAction();
         }
     }
 
@@ -403,14 +452,21 @@ public class K4LVideoTrimmer extends FrameLayout {
 
     private void setSeekBarPosition() {
 
-        if (mDuration >= mMaxDuration) {
+        if (presetEndPosition != 0) {
+            mStartPosition = presetStartPosition;
+            mEndPosition = presetEndPosition;
+
+            mRangeSeekBarView.setThumbValue(0, (mStartPosition * 100) / mDuration);
+            mRangeSeekBarView.setThumbValue(1, (mEndPosition * 100) / mDuration);
+        }
+        else if (mDuration >= mMaxDuration) {
             mStartPosition = mDuration / 2 - mMaxDuration / 2;
             mEndPosition = mDuration / 2 + mMaxDuration / 2;
 
             mRangeSeekBarView.setThumbValue(0, (mStartPosition * 100) / mDuration);
             mRangeSeekBarView.setThumbValue(1, (mEndPosition * 100) / mDuration);
-
-        } else {
+        }
+        else {
             mStartPosition = 0;
             mEndPosition = mDuration;
         }
@@ -433,6 +489,7 @@ public class K4LVideoTrimmer extends FrameLayout {
     }
 
     private void onSeekThumbs(int index, float value) {
+
         switch (index) {
             case Thumb.LEFT: {
                 mStartPosition = (int) ((mDuration * value) / 100L);
@@ -520,6 +577,16 @@ public class K4LVideoTrimmer extends FrameLayout {
         mOnTrimVideoListener = onTrimVideoListener;
     }
 
+    public void setPresetStartAndEndPositions(int presetStartPosition, int presetEndPosition) {
+        this.presetStartPosition = presetStartPosition;
+        this.presetEndPosition = presetEndPosition;
+
+    }
+
+    public void setmOnTrimPickedListener(OnTrimPickedListener onTrimPickedListener) {
+        mOnTrimPickedListener  = onTrimPickedListener;
+    }
+
     /**
      * Listener for some {@link VideoView} events
      *
@@ -559,6 +626,10 @@ public class K4LVideoTrimmer extends FrameLayout {
     @SuppressWarnings("unused")
     public void setMaxDuration(int maxDuration) {
         mMaxDuration = maxDuration * 1000;
+    }
+
+    public void setMinDuration(int minDuration) {
+        mMinDuration = minDuration * 1000;
     }
 
     /**
