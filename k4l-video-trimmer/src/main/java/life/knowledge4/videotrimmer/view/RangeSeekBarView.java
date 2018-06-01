@@ -141,11 +141,13 @@ public class RangeSeekBarView extends View {
         final Thumb mThumb2;
         final float coordinate = ev.getX();
         final int action = ev.getAction();
+        System.out.println("Trimmer onTouchEvent coodinate=" + coordinate + ", action=" + action);
 
         switch (action) {
             case MotionEvent.ACTION_DOWN: {
                 // Remember where we started
                 currentThumb = getClosestThumb(coordinate);
+                System.out.println("ACTION_DOWN currentThumb=" + currentThumb);
 
                 if (currentThumb == -1) {
                     return false;
@@ -157,6 +159,7 @@ public class RangeSeekBarView extends View {
                 return true;
             }
             case MotionEvent.ACTION_UP: {
+                System.out.println("ACTION_UP currentThumb=" + currentThumb);
 
                 if (currentThumb == -1) {
                     return false;
@@ -170,16 +173,21 @@ public class RangeSeekBarView extends View {
             case MotionEvent.ACTION_MOVE: {
                 mThumb = mThumbs.get(currentThumb);
                 mThumb2 = mThumbs.get(currentThumb == 0 ? 1 : 0);
+
                 // Calculate the distance moved
                 final float dx = coordinate - mThumb.getLastTouchX();
                 final float newX = mThumb.getPos() + dx;
+                System.out.println("ACTION_MOVE currentThumb=" + currentThumb + ", dx=" +  dx + ", mewX=" + newX);
                 if (currentThumb == 0) {
 
                     if ((newX + mThumb.getWidthBitmap()) >= mThumb2.getPos()) {
+                        System.out.println("- debug 1");
                         mThumb.setPos(mThumb2.getPos() - mThumb.getWidthBitmap());
                     } else if (newX <= mPixelRangeMin) {
+                        System.out.println("- debug 2");
                         mThumb.setPos(mPixelRangeMin);
                     } else {
+                        System.out.println("- debug 3");
                         //Check if thumb is not out of max width
                         checkPositionThumb(mThumb, mThumb2, dx, true);
                         // Move the object
@@ -191,10 +199,13 @@ public class RangeSeekBarView extends View {
 
                 } else {
                     if (newX <= mThumb2.getPos() + mThumb2.getWidthBitmap()) {
+                        System.out.println("- debug 4");
                         mThumb.setPos(mThumb2.getPos() + mThumb.getWidthBitmap());
                     } else if (newX >= mPixelRangeMax) {
+                        System.out.println("- debug 5");
                         mThumb.setPos(mPixelRangeMax);
                     } else {
+                        System.out.println("- debug 6");
                         //Check if thumb is not out of max width
                         checkPositionThumb(mThumb2, mThumb, dx, false);
                         // Move the object
