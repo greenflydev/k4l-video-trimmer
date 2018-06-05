@@ -184,4 +184,33 @@ public class TrimVideoUtils {
             return mFormatter.format("%02d:%02d", minutes, seconds).toString();
         }
     }
+
+    public static String mediaTime(int timeMs, int startPosition) {
+        int totalSeconds = (timeMs - startPosition) / 1000;
+
+        int seconds = (int) Math.ceil(totalSeconds % 60);
+        int minutes = (int) Math.ceil((totalSeconds / 60) % 60);
+        int hours = (int) Math.ceil(totalSeconds / 3600);
+
+        if (seconds < 0) {
+            seconds = 0;
+        }
+        if (minutes < 0) {
+            minutes = 0;
+        }
+
+        Formatter mFormatter = new Formatter();
+        /*
+        if (hours > 0) {
+            return mFormatter.format("%d:%02d:%02d", hours, minutes, seconds).toString();
+        } else {
+            return mFormatter.format("%02d:%02d", minutes, seconds).toString();
+        }
+        */
+        if (minutes > 0) {
+            return mFormatter.format("%02d:%02d", minutes, seconds).toString();
+        } else {
+            return mFormatter.format(":%02d", seconds).toString();
+        }
+    }
 }

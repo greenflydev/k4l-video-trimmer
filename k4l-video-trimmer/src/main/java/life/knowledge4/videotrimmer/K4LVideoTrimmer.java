@@ -23,7 +23,9 @@
  */
 package life.knowledge4.videotrimmer;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -56,6 +58,7 @@ import life.knowledge4.videotrimmer.interfaces.OnRangeSeekBarListener;
 import life.knowledge4.videotrimmer.interfaces.OnTrimPickedListener;
 import life.knowledge4.videotrimmer.interfaces.OnTrimVideoListener;
 import life.knowledge4.videotrimmer.utils.BackgroundExecutor;
+import life.knowledge4.videotrimmer.utils.TrimVideoUtils;
 import life.knowledge4.videotrimmer.utils.UiThreadExecutor;
 import life.knowledge4.videotrimmer.view.ProgressBarView;
 import life.knowledge4.videotrimmer.view.RangeSeekBarView;
@@ -67,8 +70,10 @@ import static life.knowledge4.videotrimmer.utils.TrimVideoUtils.stringForTime;
 public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener {
 
     private static final String TAG = K4LVideoTrimmer.class.getSimpleName();
-    private static final int MIN_TIME_FRAME = 1000;
+    private static final int MIN_TIME_FRAME = 2000;
     private static final int SHOW_PROGRESS = 2;
+
+    private TextView seekbarText;
 
     private SeekBar mHolderTopView;
     private RangeSeekBarView mRangeSeekBarView;
@@ -117,6 +122,7 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
     private void init(Context context) {
         LayoutInflater.from(context).inflate(R.layout.view_time_line, this, true);
 
+        seekbarText = (TextView) findViewById(R.id.seekText);
         mHolderTopView = ((SeekBar) findViewById(R.id.handlerTop));
         mVideoProgressIndicator = ((ProgressBarView) findViewById(R.id.timeVideoView));
         mRangeSeekBarView = ((RangeSeekBarView) findViewById(R.id.timeLineBar));
@@ -306,14 +312,26 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
 
             if (mTimeVideo < MIN_TIME_FRAME) {
 
+                /*
                 if ((METADATA_KEY_DURATION - mEndPosition) > (MIN_TIME_FRAME - mTimeVideo)) {
                     mEndPosition += (MIN_TIME_FRAME - mTimeVideo);
                 } else if (mStartPosition > (MIN_TIME_FRAME - mTimeVideo)) {
                     mStartPosition -= (MIN_TIME_FRAME - mTimeVideo);
                 }
-            }
+                */
 
-            if (mOnTrimPickedListener != null) {
+                AlertDialog alertDialog = new AlertDialog.Builder(getContext()).create();
+                alertDialog.setTitle("Clip Too Short");
+                alertDialog.setMessage("This clip is too short. The minimum length is 2 seconds. Please try again.");
+                alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                            }
+                        });
+                alertDialog.show();
+            }
+            else if (mOnTrimPickedListener != null) {
                 mOnTrimPickedListener.getResult(mStartPosition, mEndPosition);
             }
 
@@ -448,6 +466,8 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
         if (mOnK4LVideoListener != null) {
             mOnK4LVideoListener.onVideoPrepared();
         }
+
+        mRangeSeekBarView.setMinDuration(mMinDuration, mDuration);
     }
 
     private void setSeekBarPosition() {
@@ -481,11 +501,15 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
     private void setTimeFrames() {
         String seconds = getContext().getString(R.string.short_seconds);
         mTextTimeFrame.setText(String.format("%s %s - %s %s", stringForTime(mStartPosition), seconds, stringForTime(mEndPosition), seconds));
+
+        seekbarText.setText(":00");
     }
 
     private void setTimeVideo(int position) {
         String seconds = getContext().getString(R.string.short_seconds);
         mTextTime.setText(String.format("%s %s", stringForTime(position), seconds));
+
+        seekbarText.setText(TrimVideoUtils.mediaTime(position, mStartPosition));
     }
 
     private void onSeekThumbs(int index, float value) {
