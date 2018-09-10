@@ -586,11 +586,20 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
 
     private void setProgressBarPosition(int position) {
         Thumb leftThumb = mRangeSeekBarView.getThumbs().get(0);
-        Thumb rightThumb = mRangeSeekBarView.getThumbs().get(1);
+        //Thumb rightThumb = mRangeSeekBarView.getThumbs().get(1);
         if (mDuration > 0) {
             long pos = 1000L * position / mDuration;
-            System.out.println("TTT: " + mDuration + " : " + position + " : " + pos + " : " + leftThumb.getPos() + " - " + leftThumb.getVal() + " : " + rightThumb.getPos() + " - " + rightThumb.getVal());
-            mHolderTopView.setProgress((int) pos);
+            //System.out.println("TTT: " + mDuration + " : " + position + " : " + pos + " : " + leftThumb.getPos() + " - " + leftThumb.getVal() + " : " + rightThumb.getPos() + " - " + rightThumb.getVal());
+            float leftThumbVal = leftThumb.getVal() * 10;
+            /*
+             * The play handle will jump a little bit before the drag handle when playback starts.
+             * To band-aid this we will not let the play handle move past the drag handle.
+             */
+            if (pos < leftThumbVal) {
+                mHolderTopView.setProgress((int) leftThumbVal);
+            } else {
+                mHolderTopView.setProgress((int) pos);
+            }
         }
     }
 
