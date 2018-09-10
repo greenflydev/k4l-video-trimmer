@@ -26,6 +26,7 @@ package life.knowledge4.videotrimmer;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Resources;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -281,8 +282,13 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
         int widthSeek = mHolderTopView.getThumb().getMinimumWidth() / 2;
 
         RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) mHolderTopView.getLayoutParams();
-        lp.setMargins(marge - widthSeek, 0, marge - widthSeek, 0);
-        mHolderTopView.setLayoutParams(lp);
+        //lp.setMargins(marge - widthSeek, 0, marge - widthSeek, 0);
+        //mHolderTopView.setLayoutParams(lp);
+        /*
+         * The above margins weren't working, the seekbar is smaller than the rangebar.
+         * Setting padding manually for a fixed 28dp.
+         */
+        mHolderTopView.setPadding(dpToPx(28), 0, dpToPx(28), 0);
 
         lp = (RelativeLayout.LayoutParams) mTimeLineView.getLayoutParams();
         lp.setMargins(marge, 0, marge, 0);
@@ -291,6 +297,10 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
         lp = (RelativeLayout.LayoutParams) mVideoProgressIndicator.getLayoutParams();
         lp.setMargins(marge, 0, marge, 0);
         mVideoProgressIndicator.setLayoutParams(lp);
+    }
+
+    public static int dpToPx(double dp) {
+        return (int) (dp * Resources.getSystem().getDisplayMetrics().density);
     }
 
     private void onSaveClicked() {
@@ -575,8 +585,11 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
     }
 
     private void setProgressBarPosition(int position) {
+        Thumb leftThumb = mRangeSeekBarView.getThumbs().get(0);
+        Thumb rightThumb = mRangeSeekBarView.getThumbs().get(1);
         if (mDuration > 0) {
             long pos = 1000L * position / mDuration;
+            System.out.println("TTT: " + mDuration + " : " + position + " : " + pos + " : " + leftThumb.getPos() + " - " + leftThumb.getVal() + " : " + rightThumb.getPos() + " - " + rightThumb.getVal());
             mHolderTopView.setProgress((int) pos);
         }
     }
