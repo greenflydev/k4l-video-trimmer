@@ -33,7 +33,6 @@ import android.net.Uri;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.support.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.GestureDetector;
@@ -47,6 +46,8 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.VideoView;
+
+import androidx.annotation.NonNull;
 
 import java.io.File;
 import java.lang.ref.WeakReference;
@@ -687,19 +688,19 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
     public void setVideoURI(final Uri videoURI) {
         mSrc = videoURI;
 
-        if (mOriginSizeFile == 0) {
-            File file = new File(mSrc.getPath());
-
-            mOriginSizeFile = file.length();
-            long fileSizeInKB = mOriginSizeFile / 1024;
-
-            if (fileSizeInKB > 1000) {
-                long fileSizeInMB = fileSizeInKB / 1024;
-                mTextSize.setText(String.format("%s %s", fileSizeInMB, getContext().getString(R.string.megabyte)));
-            } else {
-                mTextSize.setText(String.format("%s %s", fileSizeInKB, getContext().getString(R.string.kilobyte)));
-            }
-        }
+//        if (mOriginSizeFile == 0) {
+//            File file = new File(mSrc.getPath());
+//
+//            mOriginSizeFile = file.length();
+//            long fileSizeInKB = mOriginSizeFile / 1024;
+//
+//            if (fileSizeInKB > 1000) {
+//                long fileSizeInMB = fileSizeInKB / 1024;
+//                mTextSize.setText(String.format("%s %s", fileSizeInMB, getContext().getString(R.string.megabyte)));
+//            } else {
+//                mTextSize.setText(String.format("%s %s", fileSizeInKB, getContext().getString(R.string.kilobyte)));
+//            }
+//        }
 
         mVideoView.setVideoURI(mSrc);
         mVideoView.requestFocus();
