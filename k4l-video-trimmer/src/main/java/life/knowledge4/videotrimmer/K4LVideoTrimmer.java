@@ -27,6 +27,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
@@ -42,6 +43,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -57,6 +59,7 @@ import java.util.List;
 import life.knowledge4.videotrimmer.interfaces.OnK4LVideoListener;
 import life.knowledge4.videotrimmer.interfaces.OnProgressVideoListener;
 import life.knowledge4.videotrimmer.interfaces.OnRangeSeekBarListener;
+import life.knowledge4.videotrimmer.interfaces.OnTimelineListener;
 import life.knowledge4.videotrimmer.interfaces.OnTrimPickedListener;
 import life.knowledge4.videotrimmer.interfaces.OnTrimVideoListener;
 import life.knowledge4.videotrimmer.utils.BackgroundExecutor;
@@ -87,6 +90,7 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
     private TextView mTextTimeFrame;
     private TextView mTextTime;
     private TimeLineView mTimeLineView;
+    private ProgressBar mTimelineProgress;
 
     private ProgressBarView mVideoProgressIndicator;
     private Uri mSrc;
@@ -124,18 +128,23 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
     private void init(Context context) {
         LayoutInflater.from(context).inflate(R.layout.view_time_line, this, true);
 
-        seekbarText = (TextView) findViewById(R.id.seekText);
-        mHolderTopView = ((SeekBar) findViewById(R.id.handlerTop));
-        mVideoProgressIndicator = ((ProgressBarView) findViewById(R.id.timeVideoView));
-        mRangeSeekBarView = ((RangeSeekBarView) findViewById(R.id.timeLineBar));
-        mLinearVideo = ((RelativeLayout) findViewById(R.id.layout_surface_view));
-        mVideoView = ((VideoView) findViewById(R.id.video_loader));
-        mPlayView = ((ImageView) findViewById(R.id.icon_video_play));
+        seekbarText = findViewById(R.id.seekText);
+        mHolderTopView = findViewById(R.id.handlerTop);
+        mVideoProgressIndicator = findViewById(R.id.timeVideoView);
+        mRangeSeekBarView = findViewById(R.id.timeLineBar);
+        mLinearVideo = findViewById(R.id.layout_surface_view);
+        mVideoView = findViewById(R.id.video_loader);
+        mPlayView = findViewById(R.id.icon_video_play);
         mTimeInfoContainer = findViewById(R.id.timeText);
-        mTextSize = ((TextView) findViewById(R.id.textSize));
-        mTextTimeFrame = ((TextView) findViewById(R.id.textTimeSelection));
-        mTextTime = ((TextView) findViewById(R.id.textTime));
-        mTimeLineView = ((TimeLineView) findViewById(R.id.timeLineView));
+        mTextSize = findViewById(R.id.textSize);
+        mTextTimeFrame = findViewById(R.id.textTimeSelection);
+        mTextTime = findViewById(R.id.textTime);
+        mTimeLineView = findViewById(R.id.timeLineView);
+
+        mTimelineProgress = findViewById(R.id.timelineProgress);
+        Drawable progressDrawable = mTimelineProgress.getIndeterminateDrawable().mutate();
+        progressDrawable.setColorFilter(0xFF2dc563, android.graphics.PorterDuff.Mode.SRC_IN);
+        mTimelineProgress.setProgressDrawable(progressDrawable);
 
         setUpListeners();
         setUpMargins();
@@ -172,7 +181,7 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
         });
         mListeners.add(mVideoProgressIndicator);
 
-        TextView btnCancel =  (TextView) findViewById(R.id.btn_cancel);
+        final TextView btnCancel = findViewById(R.id.btn_cancel);
         btnCancel.setOnClickListener(
                 new OnClickListener() {
                     @Override
@@ -183,17 +192,32 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
         );
         btnCancel.setOnTouchListener(this);
 
+        final TextView btnChoose = findViewById(R.id.btn_choose);
 
-        TextView btnChoose = (TextView) findViewById(R.id.btn_choose);
-        btnChoose.setOnClickListener(
-                new OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        onSaveClicked();
-                    }
-                }
-        );
-        btnChoose.setOnTouchListener(this);
+        mTimeLineView.setOnTimelineListener(new OnTimelineListener() {
+            @Override
+            public void processingStarted() {
+                btnChoose.setOnClickListener(null);
+                btnChoose.setOnTouchListener(null);
+                btnChoose.setTextColor(0x80ffffff);
+                mTimelineProgress.setVisibility(View.VISIBLE);
+            }
+
+            @Override
+            public void processingFinished() {
+                btnChoose.setOnClickListener(
+                        new OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                onSaveClicked();
+                            }
+                        }
+                );
+                btnChoose.setOnTouchListener(K4LVideoTrimmer.this);
+                btnChoose.setTextColor(0xFFffffff);
+                mTimelineProgress.setVisibility(View.GONE);
+            }
+        });
 
         final GestureDetector gestureDetector = new
                 GestureDetector(getContext(),

@@ -28,12 +28,14 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.media.MediaMetadataRetriever;
 import android.net.Uri;
-import androidx.annotation.NonNull;
 import android.util.AttributeSet;
 import android.util.LongSparseArray;
 import android.view.View;
 
+import androidx.annotation.NonNull;
+
 import life.knowledge4.videotrimmer.R;
+import life.knowledge4.videotrimmer.interfaces.OnTimelineListener;
 import life.knowledge4.videotrimmer.utils.BackgroundExecutor;
 import life.knowledge4.videotrimmer.utils.UiThreadExecutor;
 
@@ -43,6 +45,8 @@ public class TimeLineView extends View {
     private int mHeightView;
     private LongSparseArray<Bitmap> mBitmapList = null;
 
+    private OnTimelineListener mOnTimelineListener = null;
+
     public TimeLineView(@NonNull Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
@@ -50,6 +54,10 @@ public class TimeLineView extends View {
     public TimeLineView(@NonNull Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         init();
+    }
+
+    public void setOnTimelineListener(OnTimelineListener onTimelineListener) {
+        mOnTimelineListener = onTimelineListener;
     }
 
     private void init() {
@@ -81,6 +89,10 @@ public class TimeLineView extends View {
                                        @Override
                                        public void execute() {
                                            try {
+                                               if (mOnTimelineListener != null) {
+                                                   mOnTimelineListener.processingStarted();
+                                               }
+
                                                LongSparseArray<Bitmap> thumbnailList = new LongSparseArray<>();
 
                                                MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
@@ -144,6 +156,10 @@ public class TimeLineView extends View {
                     canvas.drawBitmap(bitmap, x, 0, null);
                     x = x + bitmap.getWidth();
                 }
+            }
+
+            if (mOnTimelineListener != null) {
+                mOnTimelineListener.processingFinished();
             }
         }
     }

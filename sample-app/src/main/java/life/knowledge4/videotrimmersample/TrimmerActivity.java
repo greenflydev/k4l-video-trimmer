@@ -4,8 +4,9 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import life.knowledge4.videotrimmer.K4LVideoTrimmer;
 import life.knowledge4.videotrimmer.interfaces.OnK4LVideoListener;
@@ -22,10 +23,11 @@ public class TrimmerActivity extends AppCompatActivity implements OnTrimVideoLis
         setContentView(R.layout.activity_trimmer);
 
         Intent extraIntent = getIntent();
-        String path = "";
+        Uri videoUri = null;
 
         if (extraIntent != null) {
-            path = extraIntent.getStringExtra(MainActivity.EXTRA_VIDEO_PATH);
+            String uri = extraIntent.getStringExtra(MainActivity.EXTRA_VIDEO_URI);
+            videoUri = Uri.parse(uri);
         }
 
         //setting progressbar
@@ -40,7 +42,7 @@ public class TrimmerActivity extends AppCompatActivity implements OnTrimVideoLis
             mVideoTrimmer.setOnTrimVideoListener(this);
             mVideoTrimmer.setOnK4LVideoListener(this);
             //mVideoTrimmer.setDestinationPath("/storage/emulated/0/DCIM/CameraCustom/");
-            mVideoTrimmer.setVideoURI(Uri.parse(path));
+            mVideoTrimmer.setVideoURI(videoUri);
             mVideoTrimmer.setVideoInformationVisibility(false);
         }
     }

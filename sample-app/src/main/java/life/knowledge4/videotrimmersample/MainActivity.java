@@ -7,21 +7,20 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatActivity;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
-import life.knowledge4.videotrimmer.utils.FileUtils;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_VIDEO_TRIMMER = 0x01;
     private static final int REQUEST_STORAGE_READ_ACCESS_PERMISSION = 101;
-    static final String EXTRA_VIDEO_PATH = "EXTRA_VIDEO_PATH";
+    static final String EXTRA_VIDEO_URI = "EXTRA_VIDEO_URI";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +67,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
             if (requestCode == REQUEST_VIDEO_TRIMMER) {
                 final Uri selectedUri = data.getData();
@@ -82,8 +82,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void startTrimActivity(@NonNull Uri uri) {
         Intent intent = new Intent(this, TrimmerActivity.class);
-        //intent.putExtra(EXTRA_VIDEO_PATH, FileUtils.getPath(this, uri));
-        intent.putExtra(EXTRA_VIDEO_PATH, uri.getPath());
+        intent.putExtra(EXTRA_VIDEO_URI, uri.toString());
         startActivity(intent);
     }
 
