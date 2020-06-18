@@ -703,6 +703,14 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
         mMinDuration = minDuration * 1000;
     }
 
+    public int getStartPosition() {
+        return mStartPosition;
+    }
+
+    public int getEndPosition() {
+        return mEndPosition;
+    }
+
     /**
      * Sets the uri of the video to be trimmer
      *
