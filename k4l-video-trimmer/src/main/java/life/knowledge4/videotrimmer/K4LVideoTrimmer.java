@@ -23,6 +23,8 @@
  */
 package life.knowledge4.videotrimmer;
 
+import static life.knowledge4.videotrimmer.utils.TrimVideoUtils.stringForTime;
+
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -69,8 +71,6 @@ import life.knowledge4.videotrimmer.view.ProgressBarView;
 import life.knowledge4.videotrimmer.view.RangeSeekBarView;
 import life.knowledge4.videotrimmer.view.Thumb;
 import life.knowledge4.videotrimmer.view.TimeLineView;
-
-import static life.knowledge4.videotrimmer.utils.TrimVideoUtils.stringForTime;
 
 public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener {
 
@@ -367,6 +367,13 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
                 alertDialog.show();
             }
             else if (mOnTrimPickedListener != null) {
+                /*
+                 * Sometimes the handles will be a little greater than the maximum allowed length.
+                 * This will make sure a 15 second video cannot be 16 seconds.
+                 */
+                if (mEndPosition - mStartPosition > mMaxDuration) {
+                    mEndPosition = mStartPosition + mMaxDuration;
+                }
                 mOnTrimPickedListener.getResult(mStartPosition, mEndPosition);
             }
 
