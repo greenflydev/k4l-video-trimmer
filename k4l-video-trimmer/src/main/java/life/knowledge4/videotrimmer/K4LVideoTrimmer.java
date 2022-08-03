@@ -500,7 +500,16 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
         mPlayView.setVisibility(View.VISIBLE);
 
         mDuration = mVideoView.getDuration();
+
+        /*
+         * Set the maximum and minimum seekbar positions
+         */
         setSeekBarPosition();
+
+        /*
+         * Once the max/min are set, update the thumbnails to any preset positions
+         */
+        setSeekBarPresetPosition();
 
         setTimeFrames();
         setTimeVideo(0);
@@ -512,16 +521,16 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
         mRangeSeekBarView.setMinDuration(mMinDuration, mDuration);
     }
 
+    /*
+     * Originally this method would set the min, max, and also the preset positions.
+     * What would happen is if the preset position is 15 seconds, then the length could NEVER
+     * be more than 15 seconds.
+     *
+     * To fix this, the preset setting has been moved into it's own method, setSeekBarPresetPosition()
+     */
     private void setSeekBarPosition() {
 
-        if (presetEndPosition != 0) {
-            mStartPosition = presetStartPosition;
-            mEndPosition = presetEndPosition;
-
-            mRangeSeekBarView.setThumbValue(0, (mStartPosition * 100) / mDuration);
-            mRangeSeekBarView.setThumbValue(1, (mEndPosition * 100) / mDuration);
-        }
-        else if (mDuration >= mMaxDuration) {
+        if (mDuration >= mMaxDuration) {
             mStartPosition = mDuration / 2 - mMaxDuration / 2;
             mEndPosition = mDuration / 2 + mMaxDuration / 2;
 
@@ -538,6 +547,26 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
 
         mTimeVideo = mDuration;
         mRangeSeekBarView.initMaxWidth();
+    }
+
+    /*
+     * This will adjust the thumb handles to the preset positioning. It will not limit the min or max
+     * which will be set by setSeekBarPosition()
+     */
+    private void setSeekBarPresetPosition() {
+
+        if (presetEndPosition != 0) {
+            mStartPosition = presetStartPosition;
+            mEndPosition = presetEndPosition;
+
+            mRangeSeekBarView.setThumbValue(0, (mStartPosition * 100) / mDuration);
+            mRangeSeekBarView.setThumbValue(1, (mEndPosition * 100) / mDuration);
+
+            setProgressBarPosition(mStartPosition);
+            mVideoView.seekTo(mStartPosition);
+
+            mTimeVideo = mDuration;
+        }
     }
 
     private void setTimeFrames() {
