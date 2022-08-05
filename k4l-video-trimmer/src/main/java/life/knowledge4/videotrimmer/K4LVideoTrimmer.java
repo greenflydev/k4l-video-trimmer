@@ -606,6 +606,10 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
         mMessageHandler.removeMessages(SHOW_PROGRESS);
         mVideoView.pause();
         mPlayView.setVisibility(View.VISIBLE);
+
+        if (mOnTrimPickedListener != null) {
+            mOnTrimPickedListener.trimAdjusted();
+        }
     }
 
     private void onVideoCompleted() {

@@ -7,4 +7,6 @@ public interface OnTrimPickedListener {
     void getResult(final int trimStartMs, final int trimEndMs);
 
     void cancelAction();
+
+    void trimAdjusted();
 }
