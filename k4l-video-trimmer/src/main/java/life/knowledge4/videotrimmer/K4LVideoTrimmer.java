@@ -355,7 +355,7 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
                 }
                 */
 
-                AlertDialog alertDialog = new AlertDialog.Builder(getContext()).create();
+                AlertDialog alertDialog = new AlertDialog.Builder(getContext(), R.style.TrimmerAlertDialogRtlSupport).create();
                 alertDialog.setTitle("Clip Too Short");
                 alertDialog.setMessage("This clip is too short. The minimum length is 2 seconds. Please try again.");
                 alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
