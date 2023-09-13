@@ -8,4 +8,9 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="TrimmerAlertDialogRtlSupport" parent="ThemeOverlay.AppCompat.Dialog.Alert">
+        <item name="android:textAlignment">viewStart</item>
+    </style>
+
+
 </resources>
