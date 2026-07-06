@@ -30,7 +30,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.graphics.drawable.Drawable;
-import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Environment;
@@ -338,10 +337,6 @@ public class K4LVideoTrimmer extends FrameLayout implements View.OnTouchListener
         } else {
             mPlayView.setVisibility(View.VISIBLE);
             mVideoView.pause();
-
-            MediaMetadataRetriever mediaMetadataRetriever = new MediaMetadataRetriever();
-            mediaMetadataRetriever.setDataSource(getContext(), mSrc);
-            long METADATA_KEY_DURATION = Long.parseLong(mediaMetadataRetriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION));
 
             //final File file = new File(mSrc.getPath());
 

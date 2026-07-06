@@ -1,35 +1,41 @@
 apply plugin: 'com.android.library'
-apply from: '../mavenpush.gradle'
+// NOTE: Sonatype publishing (../mavenpush.gradle) used the legacy `maven` plugin,
+// which was removed in Gradle 7+. Disabled for the Gradle 9 / AGP 9 upgrade.
+// apply from: '../mavenpush.gradle'
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.2"
+    namespace = 'life.knowledge4.videotrimmer'
+    compileSdk = 37
 
-    lintOptions {
-        abortOnError false
+    lint {
+        abortOnError = false
     }
 
     defaultConfig {
-        minSdkVersion 21
-        targetSdkVersion 29
-        versionCode 1
-        versionName "1.0"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        minSdk = 21
+        targetSdk = 37
+        versionCode = 1
+        versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     buildTypes {
         release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            minifyEnabled = false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.appcompat:appcompat:1.7.1'
     implementation 'com.googlecode.mp4parser:isoparser:1.1.20'
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'androidx.annotation:annotation:1.1.0'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.annotation:annotation:1.9.1'
 }
